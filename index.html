@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<title>Tradutor</title>
+</head>
+
+<body>
+	Portugol:<br>
+	<textarea id="input" rows="20" cols="50">
+algoritmo teste;
+
+variaveis
+	hoursPerDay : inteiro;
+	x1 : real;
+fimvariaveis
+
+inicio
+	hoursPerDay := "adasdasd\"adasdasd";
+	imprima("hgjjjb");
+	leia(x1);
+	se (1 > 0 ou 2 = 0 e verdadeiro) entao
+		se (hoursPerDay > 0 ou 2 < 0) entao
+			x1 := 1;
+		fimse
+	fimse
+fim
+</textarea>
+	<br>
+	<button id="traduzir">Traduzir</button>
+	<pre id="saida"></pre>
+	<script>
+		if (!Object.create) {
+			Object.create = function (o) {
+				function F() { }
+				F.prototype = o;
+				return new F();
+			};
+		}
+	</script>
+	<script src="lexer.js"></script>
+	<script src="parser.js"></script>
+	<script src="translator.js"></script>
+	<script>
+		var traduzir = function (input) {
+			try {
+				var tokens = lex(input);
+				console.log(tokens);
+
+				var parseTree = parse(tokens);
+				console.log(parseTree);
+
+				var saida = translate(parseTree);
+				return saida;
+			} catch (e) {
+				console.log(e);
+				return e;
+			}
+		};
+
+		document.onkeyup = function (e) {
+			if (e.keyCode == "Tab") {
+				e.preventDefault();
+			}
+		};
+
+		document.onkeydown = document.onkeyup;
+		document.onkeypress = document.onkeyup;
+
+		document.getElementById("traduzir").onclick = function () {
+			var input = document.getElementById("input").value;
+			saida = traduzir(input);
+			document.getElementById("saida").innerHTML = saida;
+		};
+	</script>
+</body>
+
+</html>
