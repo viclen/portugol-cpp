@@ -11,7 +11,7 @@
 algoritmo teste;
 
 variaveis
-	hoursPerDay : inteiro;
+	hoursPerDay : literal;
 	x1 : real;
 fimvariaveis
 
@@ -19,11 +19,16 @@ inicio
 	hoursPerDay := "adasdasd\"adasdasd";
 	imprima("hgjjjb");
 	leia(x1);
-	se (1 > 0 ou 2 = 0 e verdadeiro) entao
+
+	para (i := 1; i < 10; i := i + 1) faca
+		imprima(i);
+	fimpara
+
+	enquanto (1 > 0 ou 2 = 0 e verdadeiro) faca
 		se (hoursPerDay > 0 ou 2 < 0) entao
 			x1 := 1;
 		fimse
-	fimse
+	fimenquanto
 fim
 </textarea>
 	<br>

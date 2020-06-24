@@ -1,26 +1,33 @@
 var parse = function (tokens) {
 	var escopo = "";
-	var simbolos = {},
-		simbolo = function (id, nud, lbp, led) {
-			var simb = simbolos[id] || {};
-			simbolos[id] = {
-				lbp: simb.lbp || lbp,
-				nud: simb.nud || nud,
-				led: simb.lef || led
-			};
+	var simbolos = {};
+	const simbolo = function (id, nud, lbp, led) {
+		var simb = simbolos[id] || {};
+		simbolos[id] = {
+			lbp: simb.lbp || lbp,
+			nud: simb.nud || nud,
+			led: simb.lef || led
 		};
+	};
 
-	var interpretarToken = function (token) {
+	const interpretarToken = function (token) {
 		var simb = Object.create(simbolos[token.type]);
 		simb.type = token.type;
 		simb.value = token.value;
 		return simb;
 	};
 
-	var i = 0, token = function () { return interpretarToken(tokens[i]); };
-	var avancar = function () { i++; return token(); };
+	var i = 0;
+	const token = function () { return interpretarToken(tokens[i]); };
+	const avancar = function () {
+		i++;
+		if (token().type === ";" && escopo !== "paraargs") {
+			avancar();
+		}
+		return token();
+	};
 
-	var expressao = function (rbp) {
+	const expressao = function (rbp) {
 		var left, t = token();
 		avancar();
 		if (!t.nud) throw "Inesperado: " + t.type;
@@ -34,7 +41,7 @@ var parse = function (tokens) {
 		return left;
 	};
 
-	var infix = function (id, lbp, rbp, led) {
+	const infix = function (id, lbp, rbp, led) {
 		rbp = rbp || lbp;
 		simbolo(id, null, lbp, led || function (left) {
 			return {
@@ -43,18 +50,20 @@ var parse = function (tokens) {
 				right: expressao(rbp)
 			};
 		});
-	},
-		prefix = function (id, rbp) {
-			simbolo(id, function () {
-				return {
-					type: id,
-					right: expressao(rbp)
-				};
-			});
-		};
+	};
+
+	const prefix = function (id, rbp) {
+		simbolo(id, function () {
+			return {
+				type: id,
+				right: expressao(rbp)
+			};
+		});
+	};
 
 
 	simbolo(",");
+	simbolo(";", () => "");
 	simbolo(")");
 	simbolo("(end)");
 
@@ -122,6 +131,56 @@ var parse = function (tokens) {
 				expr,
 				body
 			};
+		} else if (node.value == "enquanto") {
+			const expr = expressao(2);
+
+			if (token().value !== "faca") {
+				throw "Esperando 'faca'";
+			}
+			avancar();
+
+			let body = [];
+			while (token().value !== "fimenquanto") {
+				body.push(expressao(0));
+			}
+			avancar();
+
+			return {
+				type: "while",
+				expr,
+				body
+			};
+		} else if (node.value == "para") {
+			escopo = "paraargs";
+			if (token().type === "(") {
+				var args = [];
+				do {
+					avancar();
+					args.push(expressao(0));
+					console.log(token());
+				} while (token().type === ";");
+				if (token().type !== ")") throw "Esperando ')', ";
+				avancar();
+				if (token().value !== "faca") {
+					throw "Esperando 'faca'";
+				}
+				avancar();
+
+				escopo = "para";
+
+				let body = [];
+				while (token().value !== "fimpara") {
+					body.push(expressao(0));
+				}
+				avancar();
+
+				return {
+					type: "for",
+					args,
+					body
+				};
+			}
+			return name;
 		} else if (node.value == "variaveis") {
 			escopo = "variaveis";
 
@@ -156,16 +215,21 @@ var parse = function (tokens) {
 
 	simbolo("function", ({ type, value }) => {
 		if (token().type === "(") {
-			let expr = expressao(2);
-
-			if (value === "leia" && expr.type != 'identifier') {
-				throw "Esperando variavel";
+			var args = [];
+			if (tokens[i + 1].type === ")") avancar();
+			else {
+				do {
+					avancar();
+					args.push(expressao(2));
+				} while (token().type === ",");
+				if (token().type !== ")") throw "Esperando ')'" + console.log(token());
+				avancar();
 			}
 
 			return {
 				type,
 				value,
-				expr
+				args
 			};
 		}
 	});

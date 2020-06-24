@@ -22,7 +22,9 @@ const translate = function (parseTree) {
         literal: 'string'
     };
 
-    var parseNode = function (node) {
+    let escopo = "main";
+
+    const parseNode = function (node) {
         if (node.type === "number") return node.value;
         else if (operadores.includes(node.type)) {
             let op = node.type;
@@ -48,7 +50,7 @@ const translate = function (parseTree) {
             variaveis[node.name] = node.value.value;
             return `${tipos[parseNode(node.value)]} ${node.name};`;
         } else if (node.type === "assign") {
-            if (!variaveis[node.name]) {
+            if (!variaveis[node.name] && escopo !== "for") {
                 throw node.name + " nao declarada";
             }
 
@@ -59,15 +61,28 @@ const translate = function (parseTree) {
 
             return `${node.name} = ${parseNode(node.value)};`;
         } else if (node.type === "variaveis") {
-            return node.body.map((n) => tab(identacao) + parseNode(n) + "\n").toString().replace(/,/g, "");
+            return node.body.map((n) => tab(identacao) + parseNode(n) + "\n").join("");
         } else if (node.type === "program") {
             return `${tab(identacao++)}int main() {\n${
-                node.body.map((n) => tab(identacao) + parseNode(n) + "\n").toString().replace(/,/g, "")
+                node.body.map((n) => tab(identacao) + parseNode(n) + "\n").join("")
                 }${tab(identacao)}return 0;\n${tab(--identacao)}}\n`;
         } else if (node.type === "if") {
+            escopo = "if";
             identacao++;
             return `if (${parseNode(node.expr)}) {\n${
-                node.body.map((n) => tab(identacao) + parseNode(n) + "\n").toString().replace(/,/g, "")
+                node.body.map((n) => tab(identacao) + parseNode(n) + "\n").join("")
+                }${tab(--identacao)}}`;
+        } else if (node.type === "while") {
+            escopo = "while";
+            identacao++;
+            return `while (${parseNode(node.expr)}) {\n${
+                node.body.map((n) => tab(identacao) + parseNode(n) + "\n").join("")
+                }${tab(--identacao)}}`;
+        } else if (node.type === "for") {
+            escopo = "for";
+            identacao++;
+            return `for (int ${parseNode(node.args[0])} ${parseNode(node.args[1])}; ${parseNode(node.args[2]).replace(";", "")}) {\n${
+                node.body.map((n) => tab(identacao) + parseNode(n) + "\n").join("")
                 }${tab(--identacao)}}`;
         } else if (node.type === "string") {
             return `"${node.value}"`;
@@ -75,9 +90,9 @@ const translate = function (parseTree) {
             return `// algoritmo ${parseNode(node.value)}\n`;
         } else if (node.type === "function") {
             if (node.value === "imprima") {
-                return `cout << ${parseNode(node.expr)};`;
+                return `cout << ${node.args.map(e => parseNode(e)).join(", ")};`;
             } else if (node.value === "leia") {
-                return `cin >> ${parseNode(node.expr)};`;
+                return `cin >> ${node.args.map(e => parseNode(e)).join(", ")};`;
             }
         }
     };

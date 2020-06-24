@@ -27,7 +27,7 @@ var lex = function (input) {
 	];
 
 	const isOperator = (c) => {
-		return /[+\-*\/\^%=(),<>:]/.test(c);
+		return /[+\-*\/\^%=(),<>:;]/.test(c);
 	};
 	const isBinOperator = (c) => {
 		if (c === "ou") {
@@ -50,7 +50,7 @@ var lex = function (input) {
 		return boolean.includes(c)
 	};
 	const isWhiteSpace = function (c) {
-		return /\s/.test(c) || c === ";";
+		return /\s/.test(c);
 	};
 	const isIdentifier = function (c) {
 		return typeof c === "string" && !isOperator(c) && !isWhiteSpace(c);
